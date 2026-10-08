@@ -34,7 +34,53 @@
 
 ---
 
-## 3. Local Setup & Execution
+## 3. Clean Project Directory Structure
+
+```text
+jishitha/
+├── manage.py                   # Django CLI utility
+├── requirements.txt            # Python dependencies (Django, Gunicorn, WhiteNoise)
+├── render.yaml                 # Render Blueprint deployment config
+├── create_superuser.py         # Automated admin & sample catalog seeder
+├── db.sqlite3                  # Default SQLite database
+├── .gitignore                  # Git ignore rules
+├── README.md                   # Complete documentation
+│
+├── jishitha/                   # Django Project Configuration package
+│   ├── __init__.py
+│   ├── asgi.py
+│   ├── settings.py             # Settings (WhiteNoise, Static, Render config)
+│   ├── urls.py                 # Root URL configuration
+│   └── wsgi.py                 # WSGI entrypoint for Gunicorn
+│
+└── movies/                     # Main Cinema Web Application
+    ├── migrations/             # Database migration files
+    │   └── 0001_initial.py
+    ├── admin.py                # Admin panel registrations & customizations
+    ├── apps.py                 # App configuration
+    ├── forms.py                # Booking & Review ModelForms with validation
+    ├── models.py               # Movie, Showtime, SeatBooking, MovieReview models
+    ├── tests.py                # Comprehensive automated test suite
+    ├── urls.py                 # Application routes
+    ├── views.py                # Catalog, booking, review, confirmation views
+    ├── static/                 # Static assets (packaged with the app)
+    │   ├── css/
+    │   │   └── cinema.css      # Dark cinema theme & 5x8 matrix styles
+    │   └── js/
+    │       └── cinema.js       # Live 5x8 matrix & dynamic price calculation
+    └── templates/              # HTML Templates
+        ├── base.html           # Main cinema layout with navbar & footer
+        └── movies/
+            ├── movie_list.html             # Movie catalog with search & genre filter
+            ├── movie_detail.html           # Movie details, showtimes & reviews
+            ├── book_seats.html             # 5x8 seat grid matrix & checkout
+            ├── booking_confirmation.html   # Digital cinema pass & print ticket
+            └── booking_lookup.html         # Retrieve reservation by reference
+```
+
+---
+
+## 4. Local Setup & Execution
 
 ### Step 1: Clone and Navigate to Directory
 ```bash
