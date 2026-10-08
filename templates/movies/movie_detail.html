@@ -1,0 +1,240 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ movie.title }} — Showtimes & Reviews | CineVerse{% endblock %}
+
+{% block content %}
+<!-- Movie Detail Header Hero -->
+<section class="movie-detail-hero">
+    <div class="container">
+        <!-- Breadcrumb -->
+        <nav aria-label="breadcrumb" class="mb-4">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'movie_list' %}" class="text-secondary text-decoration-none"><i class="bi bi-house-door me-1"></i>Movies</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'movie_list' %}?genre={{ movie.genre }}" class="text-secondary text-decoration-none">{{ movie.genre }}</a></li>
+                <li class="breadcrumb-item active text-warning" aria-current="page">{{ movie.title }}</li>
+            </ol>
+        </nav>
+
+        <div class="row g-4 align-items-start">
+            <!-- Poster Column -->
+            <div class="col-md-4 col-lg-3 text-center text-md-start">
+                <img src="{{ movie.poster_url }}" alt="{{ movie.title }}" class="detail-poster-img img-fluid">
+            </div>
+
+            <!-- Movie Information Column -->
+            <div class="col-md-8 col-lg-9">
+                <div class="d-flex flex-wrap gap-2 align-items-center mb-3">
+                    <span class="badge bg-warning text-dark fw-bold px-3 py-2 rounded-pill fs-6">{{ movie.genre }}</span>
+                    <span class="badge bg-dark border border-secondary text-light px-3 py-2 rounded-pill"><i class="bi bi-clock me-1 text-warning"></i>{{ movie.formatted_duration }}</span>
+                    <span class="badge bg-dark border border-secondary text-light px-3 py-2 rounded-pill"><i class="bi bi-calendar3 me-1"></i>Released: {{ movie.release_date|date:"F d, Y" }}</span>
+                </div>
+
+                <h1 class="display-5 fw-bold text-white mb-2">{{ movie.title }}</h1>
+
+                <!-- Rating summary bar -->
+                <div class="d-flex align-items-center gap-3 mb-4">
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="fs-3 fw-bolder text-warning">
+                            {% if movie.average_rating > 0 %}{{ movie.average_rating }}{% else %}—{% endif %}
+                        </span>
+                        <div class="rating-star-display fs-5">
+                            {% for i in "12345" %}
+                                {% if forloop.counter <= movie.full_stars_count %}
+                                    <i class="bi bi-star-fill text-warning"></i>
+                                {% else %}
+                                    <i class="bi bi-star text-secondary"></i>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <span class="text-secondary">|</span>
+                    <a href="#reviews" class="text-secondary text-decoration-none hover-accent">
+                        <i class="bi bi-chat-quote me-1"></i>{{ movie.review_count }} community review{{ movie.review_count|pluralize }}
+                    </a>
+                </div>
+
+                <h5 class="text-light fw-bold mb-2">Synopsis</h5>
+                <p class="lead text-light text-opacity-75 fs-6 mb-4" style="line-height: 1.8;">
+                    {{ movie.description }}
+                </p>
+
+                <div class="d-flex gap-3">
+                    <a href="#showtimesSection" class="btn btn-cinema-gold px-4 py-2">
+                        <i class="bi bi-calendar-check me-2"></i>Select Showtime &amp; Book
+                    </a>
+                    <a href="#writeReviewSection" class="btn btn-cinema-outline px-4 py-2">
+                        <i class="bi bi-pencil-square me-2"></i>Leave a Review
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Showtime Selection Section -->
+<section class="py-5" id="showtimesSection">
+    <div class="container">
+        <div class="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-2">
+            <div>
+                <h3 class="text-light fw-bold mb-1">
+                    <i class="bi bi-clock-history text-warning me-2"></i>Available Showtimes
+                </h3>
+                <p class="text-secondary small mb-0">Choose your preferred screening time to open the interactive 5×8 seating matrix.</p>
+            </div>
+            <span class="badge bg-secondary bg-opacity-25 text-light px-3 py-2 border border-secondary border-opacity-25">
+                Standard &amp; IMAX Screens
+            </span>
+        </div>
+
+        {% if showtimes_by_date %}
+            {% for date_key, showtime_items in showtimes_by_date.items %}
+                <div class="card bg-dark bg-opacity-50 border border-secondary border-opacity-25 rounded-4 p-4 mb-4">
+                    <div class="showtime-date-header">
+                        <i class="bi bi-calendar2-event text-warning"></i>
+                        <span>{{ date_key|date:"l, F d, Y" }}</span>
+                    </div>
+
+                    <div class="d-flex flex-wrap gap-3">
+                        {% for st in showtime_items %}
+                            <a href="{% url 'book_seats' st.id %}" class="showtime-pill-btn" title="Click to select seats for this show">
+                                <span class="showtime-pill-time">{{ st.show_time|time:"h:i A" }}</span>
+                                <span class="showtime-pill-screen">{{ st.screen_number }}</span>
+                                <span class="showtime-pill-price">${{ st.ticket_price }}</span>
+                                <span class="showtime-pill-seats">
+                                    <i class="bi bi-check2-circle"></i> {{ st.available_seats_count }} seats left
+                                </span>
+                            </a>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endfor %}
+        {% else %}
+            <div class="card bg-dark border-secondary p-4 text-center">
+                <p class="text-secondary mb-0"><i class="bi bi-info-circle me-1"></i>No scheduled showtimes currently listed for this title. Please check back later.</p>
+            </div>
+        {% endif %}
+    </div>
+</section>
+
+<!-- Community Reviews Section -->
+<section class="py-5 bg-dark bg-opacity-25 border-top border-secondary border-opacity-10" id="reviews">
+    <div class="container">
+        <div class="row g-5">
+            <!-- Left Column: Reviews Summary & Submission Form -->
+            <div class="col-lg-5" id="writeReviewSection">
+                <!-- Average Rating Card -->
+                <div class="card bg-dark border border-secondary border-opacity-25 rounded-4 p-4 mb-4 text-center">
+                    <h5 class="text-light fw-bold mb-3">Community Rating</h5>
+                    <div class="rating-score-display mb-1">
+                        {% if movie.average_rating > 0 %}{{ movie.average_rating }}<span class="fs-4 text-secondary">/5</span>{% else %}N/A{% endif %}
+                    </div>
+                    <div class="rating-star-display fs-4 mb-2 justify-content-center">
+                        {% for i in "12345" %}
+                            {% if forloop.counter <= movie.full_stars_count %}
+                                <i class="bi bi-star-fill text-warning"></i>
+                            {% else %}
+                                <i class="bi bi-star text-secondary"></i>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                    <p class="text-secondary small mb-0">Based on {{ movie.review_count }} audience review{{ movie.review_count|pluralize }}</p>
+                </div>
+
+                <!-- Review Submission Card -->
+                <div class="card bg-dark border border-secondary border-opacity-25 rounded-4 p-4 shadow-lg">
+                    <h5 class="text-light fw-bold mb-1">Write a Review</h5>
+                    <p class="text-secondary small mb-3">Share your review with fellow moviegoers.</p>
+
+                    <form method="POST" action="{% url 'add_review' movie.id %}">
+                        {% csrf_token %}
+
+                        <!-- Reviewer Name -->
+                        <div class="mb-3">
+                            <label for="reviewer_name" class="form-label text-light small fw-bold">Your Name / Handle</label>
+                            {{ review_form.reviewer_name }}
+                        </div>
+
+                        <!-- 1-5 Star Interactive Rating Widget -->
+                        <div class="mb-3">
+                            <label class="form-label text-light small fw-bold d-block">Your Rating (1 to 5 Stars)</label>
+                            <div class="star-rating-widget">
+                                <input type="radio" id="star5" name="rating" value="5" checked>
+                                <label for="star5" title="5 stars"><i class="bi bi-star-fill"></i></label>
+                                
+                                <input type="radio" id="star4" name="rating" value="4">
+                                <label for="star4" title="4 stars"><i class="bi bi-star-fill"></i></label>
+                                
+                                <input type="radio" id="star3" name="rating" value="3">
+                                <label for="star3" title="3 stars"><i class="bi bi-star-fill"></i></label>
+                                
+                                <input type="radio" id="star2" name="rating" value="2">
+                                <label for="star2" title="2 stars"><i class="bi bi-star-fill"></i></label>
+                                
+                                <input type="radio" id="star1" name="rating" value="1">
+                                <label for="star1" title="1 star"><i class="bi bi-star-fill"></i></label>
+                            </div>
+                            <div id="starFeedbackText" class="text-warning small mt-1 fw-bold">
+                                5 - Masterpiece 🌟🌟🌟🌟🌟
+                            </div>
+                        </div>
+
+                        <!-- Comment -->
+                        <div class="mb-4">
+                            <label for="comment_textarea" class="form-label text-light small fw-bold">Review Comment</label>
+                            {{ review_form.comment }}
+                        </div>
+
+                        <button type="submit" class="btn btn-cinema-gold w-100 py-2">
+                            <i class="bi bi-send-fill me-1"></i> Post Community Review
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Right Column: Reviews List -->
+            <div class="col-lg-7">
+                <h4 class="text-light fw-bold mb-4 d-flex align-items-center gap-2">
+                    <i class="bi bi-chat-left-heart text-warning"></i> Verified Reviews ({{ reviews|length }})
+                </h4>
+
+                {% if reviews %}
+                    <div class="d-flex flex-column gap-3">
+                        {% for r in reviews %}
+                        <div class="card bg-dark border border-secondary border-opacity-25 rounded-4 p-4">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <div>
+                                    <h6 class="text-light fw-bold mb-0 d-flex align-items-center gap-2">
+                                        <i class="bi bi-person-circle text-secondary"></i> {{ r.reviewer_name }}
+                                    </h6>
+                                    <span class="text-secondary small">{{ r.created_date|date:"M d, Y &bull; h:i A" }}</span>
+                                </div>
+                                <div class="rating-star-display">
+                                    {% for i in "12345" %}
+                                        {% if forloop.counter <= r.rating %}
+                                            <i class="bi bi-star-fill text-warning"></i>
+                                        {% else %}
+                                            <i class="bi bi-star text-secondary"></i>
+                                        {% endif %}
+                                    {% endfor %}
+                                    <span class="badge bg-warning bg-opacity-25 text-warning ms-1">{{ r.rating }}/5</span>
+                                </div>
+                            </div>
+                            <p class="text-light text-opacity-75 mb-0" style="line-height: 1.6;">
+                                "{{ r.comment }}"
+                            </p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="card bg-dark border-secondary p-5 text-center rounded-4">
+                        <div class="fs-1 text-secondary mb-2"><i class="bi bi-chat-quote"></i></div>
+                        <h5 class="text-light">No reviews yet</h5>
+                        <p class="text-secondary small mb-0">Be the first to share your thoughts on this movie using the review form!</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
