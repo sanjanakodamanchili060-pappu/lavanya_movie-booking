@@ -1,0 +1,3 @@
+"""
+Compatibility package for yourproject
+"""
